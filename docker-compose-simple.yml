@@ -20,7 +20,7 @@ services:
       - JWT_SECRET=${JWT_SECRET:-super-secret}
     expose:
       - "8089"
-    command: ["freqtrade", "trade", "--config", "/freqtrade/config.json", "--api-server", "--listen-ip-address", "0.0.0.0", "--listen-port", "8089"]
+    command: ["trade", "--config", "/freqtrade/config.json", "--api-server", "--listen-ip-address", "0.0.0.0", "--listen-port", "8089"]
 
 volumes:
   freqtrade_data:
