@@ -2,7 +2,7 @@
     "$schema": "https://schema.freqtrade.io/schema.json",
     "max_open_trades": 3,
     "stake_currency": "USDT",
-    "stake_amount": 500,
+    "stake_amount": 300,
     "tradable_balance_ratio": 0.99,
     "fiat_display_currency": "USD",
     "dry_run": false,
@@ -68,12 +68,12 @@
     "api_server": {
         "enabled": true,
         "listen_ip_address": "0.0.0.0",
-        "listen_port": 8080,
+        "listen_port": 8089,
         "verbosity": "error",
         "enable_openapi": false,
-        "jwt_secret_key": "${JWT_SECRET}",
+        "jwt_secret_key": "${JWT_SECRET:-super-secret}",
         "CORS_origins": ["*"],
-        "username": "${API_USERNAME}",
-        "password": "${API_PASSWORD}"
+        "username": "${API_USERNAME:-admin}",
+        "password": "${API_PASSWORD:-freqtrade}"
     }
 }
