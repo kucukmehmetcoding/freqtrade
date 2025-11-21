@@ -1,3 +1,4 @@
+# Production FreqTrade Deployment - Fresh Branch
 services:
   freqtrade:
     image: freqtradeorg/freqtrade:stable
