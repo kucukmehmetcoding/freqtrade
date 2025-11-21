@@ -14,6 +14,7 @@ services:
       - API_USERNAME=${API_USERNAME:-admin}
       - API_PASSWORD=${API_PASSWORD:-freqtrade}
       - JWT_SECRET=${JWT_SECRET:-super-secret}
+    # FIXED: Removed --verbosity parameter for compatibility
     command: ["trade", "--config", "/freqtrade/config.json", "--strategy", "SampleStrategy"]
 
 volumes:
