@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  freqtrade-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.coolify
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+
+    container_name: freqtrade-production
+    restart: unless-stopped
+
+    # Environment variables (to be configured in Coolify)
+    environment:
+      # Trading Configuration
+      - DRY_RUN=${DRY_RUN:-false}
+      - MAX_OPEN_TRADES=${MAX_OPEN_TRADES:-2}
+      - STAKE_AMOUNT=${STAKE_AMOUNT:-100}
+
+      # Binance API Credentials (Encrypt these in Coolify!)
+      - BINANCE_API_KEY=${BINANCE_API_KEY}
+      - BINANCE_SECRET=${BINANCE_SECRET}
+
+      # Web UI Authentication
+      - API_USERNAME=${API_USERNAME:-admin}
+      - API_PASSWORD=${API_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Optional: Telegram Notifications
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+
+      # Application Environment
+      - FT_APP_ENV=production
+      - TZ=${TZ:-UTC}
+
+    ports:
+      # Web UI port (Coolify will handle SSL termination)
+      - "8080:8080"
+
+    volumes:
+      # Persistent storage for trading data
+      - freqtrade_data:/freqtrade/user_data:rw
+      - freqtrade_logs:/freqtrade/user_data/logs:rw
+
+      # Database persistence (if using SQLite)
+      - freqtrade_db:/freqtrade/tradesv3.sqlite:rw
+
+      # Strategy files (if you want to modify strategies without rebuilding)
+      - ./user_data/strategies:/freqtrade/user_data/strategies:ro
+
+    networks:
+      - freqtrade-network
+
+    # Resource limits for production stability
+    deploy:
+      resources:
+        limits:
+          # Adjust based on your server capacity
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+
+    # Health check configuration
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+        labels: "freqtrade,production"
+
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+
+    # User namespace for additional security
+    user: "1000:1000"
+
+# Named volumes for data persistence
+volumes:
+  freqtrade_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${HOST_DATA_PATH:-./data/user_data}
+
+  freqtrade_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${HOST_LOGS_PATH:-./data/logs}
+
+  freqtrade_db:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${HOST_DB_PATH:-./data/db}
+
+# Network configuration
+networks:
+  freqtrade-network:
+    driver: bridge
+    name: freqtrade-net
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
