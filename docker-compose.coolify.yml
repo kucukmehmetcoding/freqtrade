@@ -40,18 +40,8 @@ services:
       - "8080:8080"
 
     volumes:
-      # Persistent storage for trading data
-      - freqtrade_data:/freqtrade/user_data:rw
-      - freqtrade_logs:/freqtrade/user_data/logs:rw
-
-      # Database persistence (if using SQLite)
-      - freqtrade_db:/freqtrade/tradesv3.sqlite:rw
-
-      # Strategy files (if you want to modify strategies without rebuilding)
-      - ./user_data/strategies:/freqtrade/user_data/strategies:ro
-
-      # Config file
-      - ./user_data/config.json:/freqtrade/user_data/config.json:ro
+      # Mount entire user_data directory for simplicity
+      - ./user_data:/freqtrade/user_data:rw
 
     networks:
       - freqtrade-network
@@ -90,28 +80,9 @@ services:
     # User namespace for additional security
     user: "1000:1000"
 
-# Named volumes for data persistence
+# Named volumes for data persistence (optional - using bind mounts instead)
 volumes:
-  freqtrade_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${HOST_DATA_PATH:-./data/user_data}
-
-  freqtrade_logs:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${HOST_LOGS_PATH:-./data/logs}
-
-  freqtrade_db:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${HOST_DB_PATH:-./data/db}
+  # These are kept for compatibility but not used in the current configuration
 
 # Network configuration
 networks:
