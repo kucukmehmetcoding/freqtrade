@@ -21,6 +21,8 @@ services:
     expose:
       - "8089"
     command: ["trade", "--config", "/freqtrade/config.json", "--api-server", "--listen-ip-address", "0.0.0.0", "--listen-port", "8089"]
+    healthcheck:
+      disable: true
 
 volumes:
   freqtrade_data:
