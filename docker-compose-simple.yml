@@ -4,6 +4,7 @@ services:
     restart: unless-stopped
     volumes:
       - freqtrade_data:/freqtrade/user_data
+      - ./config.json:/freqtrade/config.json:ro
     environment:
       - DRY_RUN=${DRY_RUN:-true}
       - BINANCE_API_KEY=${BINANCE_API_KEY}
@@ -15,6 +16,7 @@ services:
       "freqtrade",
       "trade",
       "--config", "/freqtrade/config.json",
+      "--strategy", "SampleStrategy",
       "--verbosity", "3"
     ]
 

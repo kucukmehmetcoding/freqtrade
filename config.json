@@ -60,8 +60,7 @@
             "method": "StaticPairList"
         }
     ],
-    "strategy": "DailySwingHunterV5_Futures",
-    "strategy_path": "user_data/strategies/",
+    "strategy": "SampleStrategy",
     "internals": {
         "process_throttle_secs": 5
     },
