@@ -63,9 +63,6 @@ RUN pip install -e . --user --no-cache-dir \
   && mkdir -p /freqtrade/user_data/{data,logs,notebooks,plot} \
   && freqtrade install-ui
 
-# Create production config from template (will be replaced by mounted config)
-COPY --chown=ftuser:ftuser config_production.json /freqtrade/config_production.json
-
 # Copy user config to container
 COPY --chown=ftuser:ftuser user_data/config.json /freqtrade/user_data/config.json
 

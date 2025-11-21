@@ -40,8 +40,8 @@ services:
       - "8080:8080"
 
     volumes:
-      # Mount entire user_data directory for simplicity
-      - ./user_data:/freqtrade/user_data:rw
+      # Optional: Mount for persistent data (logs, database, etc.)
+      # - ./user_data:/freqtrade/user_data:rw
 
     networks:
       - freqtrade-network
