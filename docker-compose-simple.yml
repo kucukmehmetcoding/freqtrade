@@ -1,10 +1,11 @@
 services:
   app:
-    image: freqtradeorg/freqtrade:stable
+    build:
+      context: .
+      dockerfile: Dockerfile.deploy
     restart: unless-stopped
     volumes:
       - freqtrade_data:/freqtrade/user_data
-      - ./config.json:/freqtrade/user_data/config.json:ro
     ports:
       - "8089:8089"
     environment:
@@ -14,8 +15,7 @@ services:
       - API_USERNAME=${API_USERNAME:-admin}
       - API_PASSWORD=${API_PASSWORD:-freqtrade}
       - JWT_SECRET=${JWT_SECRET:-super-secret}
-    # FIXED: Mount config to user_data directory to avoid mount issues
-    command: ["trade", "--config", "/freqtrade/user_data/config.json", "--strategy", "SampleStrategy"]
+    # Config file copied via Dockerfile.deploy
 
 volumes:
   freqtrade_data:

@@ -1,0 +1,7 @@
+FROM freqtradeorg/freqtrade:stable
+
+# Copy config file to the container
+COPY config.json /freqtrade/user_data/config.json
+
+# Default command
+CMD ["trade", "--config", "/freqtrade/user_data/config.json", "--strategy", "SampleStrategy"]
