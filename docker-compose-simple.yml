@@ -13,7 +13,6 @@ services:
       - API_PASSWORD=${API_PASSWORD:-freqtrade}
       - JWT_SECRET=${JWT_SECRET:-super-secret}
     command: [
-      "freqtrade",
       "trade",
       "--config", "/freqtrade/config.json",
       "--strategy", "SampleStrategy",
