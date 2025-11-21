@@ -26,16 +26,9 @@ services:
       - FT_APP_ENV=production
       - TZ=${TZ:-UTC}
 
-    expose:
-      # Expose port for Coolify's proxy
-      - "8080"
-
     volumes:
       # Persistent storage for trading data
       - freqtrade_data:/freqtrade/user_data:rw
-
-    networks:
-      - freqtrade-network
 
     # Health check configuration
     healthcheck:
@@ -52,8 +45,3 @@ services:
 volumes:
   freqtrade_data:
     driver: local
-
-# Network configuration
-networks:
-  freqtrade-network:
-    driver: bridge
