@@ -1,51 +1,12 @@
-version: '3.8'
-
 services:
-  freqtrade-bot:
-    # Use official Freqtrade image instead of building
+  app:
     image: freqtradeorg/freqtrade:stable
     restart: unless-stopped
-
-    # Environment variables (to be configured in Coolify)
-    environment:
-      # Trading Configuration
-      - DRY_RUN=${DRY_RUN:-false}
-      - MAX_OPEN_TRADES=${MAX_OPEN_TRADES:-2}
-      - STAKE_AMOUNT=${STAKE_AMOUNT:-100}
-
-      # Binance API Credentials (Encrypt these in Coolify!)
-      - BINANCE_API_KEY=${BINANCE_API_KEY}
-      - BINANCE_SECRET=${BINANCE_SECRET}
-
-      # Web UI Authentication
-      - API_USERNAME=${API_USERNAME:-admin}
-      - API_PASSWORD=${API_PASSWORD}
-      - JWT_SECRET=${JWT_SECRET}
-
-      # Application Environment
-      - FT_APP_ENV=production
-      - TZ=${TZ:-UTC}
-
-    network_mode: "host"
-
     volumes:
-      # Persistent storage for trading data
-      - freqtrade_data:/freqtrade/user_data:rw
-      # Mount config file
-      - ./config_futures.json:/freqtrade/config_futures.json:ro
+      - freqtrade_data:/freqtrade/user_data
+    environment:
+      - DRY_RUN=false
+    command: ["freqtrade", "trade", "--config", "/freqtrade/config.json", "--api-server", "--listen-ip-address", "0.0.0.0", "--listen-port", "8080"]
 
-    # Health check configuration
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8081/api/v1/ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
-    # Command to run with config_futures.json
-    command: ["freqtrade", "trade", "--config", "/freqtrade/config_futures.json"]
-
-# Named volumes for data persistence
 volumes:
   freqtrade_data:
-    driver: local
