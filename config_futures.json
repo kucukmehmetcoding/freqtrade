@@ -32,8 +32,8 @@
     },
     "exchange": {
         "name": "binance",
-        "key": "mfsABHt1O26utuhk9uisjwXRHfSpojUmtwmPyELQNEdK5b9W23fUGytMYkn8abPq",
-        "secret": "pBivRlLND3ucKaxAec2xtrH8r1uUhgZ3p4aciZOnagwnXLUK3eZzVucgRJaS5rLG",
+        "key": "${BINANCE_API_KEY}",
+        "secret": "${BINANCE_SECRET}",
         "ccxt_config": {
             "enableRateLimit": true,
             "options": {
@@ -68,12 +68,12 @@
     "api_server": {
         "enabled": true,
         "listen_ip_address": "0.0.0.0",
-        "listen_port": 8081,
+        "listen_port": 8089,
         "verbosity": "error",
         "enable_openapi": false,
-        "jwt_secret_key": "somethingrandom",
-        "CORS_origins": ["http://localhost:8080"],
-        "username": "test",
-        "password": "test"
+        "jwt_secret_key": "${JWT_SECRET:-somethingrandom}",
+        "CORS_origins": ["*"],
+        "username": "${API_USERNAME:-admin}",
+        "password": "${API_PASSWORD:-test}"
     }
 }

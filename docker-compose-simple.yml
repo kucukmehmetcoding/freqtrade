@@ -4,9 +4,12 @@ services:
     restart: unless-stopped
     volumes:
       - freqtrade_data:/freqtrade/user_data
+      - ./config_futures.json:/freqtrade/config_futures.json:ro
     environment:
       - DRY_RUN=false
-    command: ["freqtrade", "trade", "--config", "/freqtrade/config.json", "--api-server", "--listen-ip-address", "0.0.0.0", "--listen-port", "8080"]
+    expose:
+      - "8089"
+    command: ["freqtrade", "trade", "--config", "/freqtrade/config_futures.json"]
 
 volumes:
   freqtrade_data:
