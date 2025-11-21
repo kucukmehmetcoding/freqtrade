@@ -1,0 +1,117 @@
+BINANCE_TESTNET_API_KEY=1jPOWNnvFbjOpexhfSFHM4nNY5KrVuDGhv1pyQ5JYYybyKFVwUAJOoFSbHLP8snT
+BINANCE_TESTNET_SECRET_KEY=iRufiWLkWwQIepQ7cuF7ekQLGdZ6EQX8OaayBqlvJJbMDrlAusfdHIImaQvLyTFq
+
+
+# ═══════════════════════════════════════════════════════════
+# BINANCE API KEYS
+# ═══════════════════════════════════════════════════════════
+
+# TESTNET KEYS (https://testnet.binancefuture.com/)
+# TODO: Testnet API key aldıktan sonra buraya yapıştırın:
+BINANCE_TESTNET_API_KEY=1jPOWNnvFbjOpexhfSFHM4nNY5KrVuDGhv1pyQ5JYYybyKFVwUAJOoFSbHLP8snT
+BINANCE_TESTNET_SECRET_KEY=iRufiWLkWwQIepQ7cuF7ekQLGdZ6EQX8OaayBqlvJJbMDrlAusfdHIImaQvLyTFq
+
+# REAL ACCOUNT KEYS (⚠️ GERÇEK PARA - DİKKATLİ KULLANIN!)
+BINANCE_API_KEY=mfsABHt1O26utuhk9uisjwXRHfSpojUmtwmPyELQNEdK5b9W23fUGytMYkn8abPq
+BINANCE_SECRET_KEY=pBivRlLND3ucKaxAec2xtrH8r1uUhgZ3p4aciZOnagwnXLUK3eZzVucgRJaS5rLG
+# ═══════════════════════════════════════════════════════════
+# TRADING MODE SELECTION
+# ═══════════════════════════════════════════════════════════
+# True  = Testnet mode (FREE test USDT, safe for testing)
+# False = LIVE mode (REAL money - use with extreme caution!)
+BINANCE_TESTNET=True
+
+# 🆕 TRADING PARAMETERS
+FUTURES_LEVERAGE=10         # Kaldıraç (10x)
+MIN_MARGIN_USD=5.0          # Minimum margin (5$)
+MAX_MARGIN_USD=5.0          # Maksimum margin (5$ - sabit)
+FIXED_RISK_USD=30.0         # Risk başına tutun
+MAX_OPEN_POSITIONS=30       # Maksimum eşzamanlı pozisyon sayısı
+
+# 🆕 v10.0 MEHMET KÜÇÜK STRATEJİSİ - 15m Fast Trading Mode
+# True  = Sadece 15m timeframe, sabit SL/TP/Leverage (hızlı ve basit)
+# False = Eski multi-timeframe sistem (1D/4H/1H, dinamik stratejiler)
+ENABLE_15M_FAST_MODE=True
+
+# ═══════════════════════════════════════════════════════════
+# ROTATING SCAN (v8.1 - Tüm Coinlerin Taranması)
+# ═══════════════════════════════════════════════════════════
+# True  = Her cycle'da farklı 300 coin tara (offset rotate eder)
+# False = Her cycle'da ilk 300 coin tara (aynı coinler)
+ENABLE_ROTATING_SCAN=True
+
+# MAX_COINS_TO_SCAN: Her cycle'da kaç coin taranacak (varsayılan: 300)
+MAX_COINS_TO_SCAN=600
+# SCAN_INTERVAL_MINUTES: Tarama cycle süresi (varsayılan: 2 dakika)
+# → 300 coin × 2dk = ~10dk (her cycle)
+# → 534 total coin ÷ 300 = 2 cycle × 10dk = ~20 dakikada tüm coinler taranır
+
+# ═══════════════════════════════════════════════════════════
+# REAL TRADING CONTROL (v7.0 NEW)
+# ═══════════════════════════════════════════════════════════
+# False = Simülasyon modu (emirler gönderilmez, sadece DB'de takip)
+# True  = GERÇEK EMİRLER GÖNDERİLİR - Binance'de pozisyon açılır!
+ENABLE_REAL_TRADING=true
+
+# ⚠️ GÜVENLİK UYARISI:
+# - TESTNET=True: Testnet API keys kullanılır, risk YOK
+# - TESTNET=False: Real API keys kullanılır, GERÇEK PARA!
+# - ENABLE_REAL_TRADING=false: Sadece simülasyon (güvenli)
+# - ENABLE_REAL_TRADING=true: GERÇEK EMİRLER (RİSKLİ!)
+# ═══════════════════════════════════════════════════════════
+
+
+DEEPSEEK_API_KEY=sk-f5b907f3672946e6812e5e7b57089474
+GEMINI_API_KEY=AIzaSyAwtURcJtZ7EePlJ1-X6o9kyCVBfHkRa68
+TELEGRAM_BOT_TOKEN=8371042399:AAGETrKzmrFm4whvftwZIp7nZ1q4fI-AUq0
+TELEGRAM_CHAT_ID=7379492356
+
+# .env dosyasının içine ekle
+
+# --- REDDIT API Bilgileri ---
+REDDIT_CLIENT_ID=Pn2G90tyXAhl-6QMJDpIvQ
+REDDIT_CLIENT_SECRET=VMNGQ083YmHHrHXunQpD9B6CLASBQA
+REDDIT_USERNAME=Narrow_Routine_3041
+REDDIT_PASSWORD=Xcoder31@123
+REDDIT_USER_AGENT=ChimeraBotSentiment/0.1 by u/Narrow_Routine_3041
+
+# Opsiyonel olanları şimdilik boş bırakabilir veya yorum satırı yapabilirsiniz:
+WHALE_ALERT_API_KEY=Liq7tAcoqLK7Qp0FStkgJSXeyJo1R771
+SERPAPI_KEY=a22821fbee07fc167cbde5384c50b429b43e95e105e26dec716f793a2bfe0428
+# ============================================================================
+# 🤖 MULTI-AI SYSTEM CONFIGURATION (v11.6)
+# ============================================================================
+
+# --- AI Provider Priority ---
+AI_ENABLED=True
+AI_PRIMARY_PROVIDER=deepseek  # DeepSeek çalışıyor, primary olarak kullan
+
+# --- DeepSeek API (Crypto-Specialized) ---
+# DEEPSEEK_API_KEY=<your-key-here>  # Bakiye yok, şimdilik kapalı
+DEEPSEEK_MODEL=deepseek-chat
+
+# --- Groq API (Ultra-Fast, FREE) ---
+GROQ_API_KEY=gsk_bn95yOyOaY3hQEp6f3dJWGdyb3FY6Fxl7A8J0EYZmpahwfnpFb0
+GROQ_MODEL=llama-3.3-70b-versatile
+
+# --- AI Features ---
+AI_NEWS_ANALYSIS=True
+AI_SIGNAL_VALIDATION=True
+AI_MARKET_CONTEXT=True
+AI_TP_SL_OPTIMIZER=False
+
+# --- AI Rate Limiting ---
+AI_MAX_REQUESTS_PER_MINUTE=30
+AI_REQUEST_TIMEOUT=30
+
+# ═══════════════════════════════════════════════════════════
+# STRATEGY PARAMETERS (v11.6 - Simplified)
+# ═══════════════════════════════════════════════════════════
+SCALP_MAX_ATR_PERCENT=3.5   # Max volatilite: 2.0 → 3.5 (daha fazla coin)
+
+MIN_RR_RATIO=1.2
+MIN_RR_RATIO_GRADE_A=1.0
+MAX_OPEN_POSITIONS=15
+QUALITY_MULTIPLIER_A=1.5
+QUALITY_MULTIPLIER_B=1.0
+QUALITY_MULTIPLIER_C=0.6

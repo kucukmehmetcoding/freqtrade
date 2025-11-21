@@ -65,6 +65,14 @@
         "process_throttle_secs": 5
     },
     "api_server": {
-        "enabled": false
+        "enabled": true,
+        "listen_ip_address": "0.0.0.0",
+        "listen_port": 8089,
+        "verbosity": "error",
+        "enable_openapi": true,
+        "jwt_secret_key": "${JWT_SECRET:-super-secret-key}",
+        "CORS_origins": ["*"],
+        "username": "${API_USERNAME:-admin}",
+        "password": "${API_PASSWORD:-freqtrade123}"
     }
 }

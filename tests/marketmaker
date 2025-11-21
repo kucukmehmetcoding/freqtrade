@@ -1,0 +1,337 @@
+# pragma pylint: disable=missing-docstring, invalid-name, pointless-string-statement
+# flake8: noqa: F401
+# isort: skip_file
+import numpy as np
+import pandas as pd
+from pandas import DataFrame
+from functools import reduce
+from datetime import datetime, timedelta
+from typing import Dict, Optional, Union, Tuple
+import warnings
+warnings.filterwarnings('ignore')
+
+from freqtrade.strategy import (
+    IStrategy,
+    Trade,
+    Order,
+    PairLocks,
+    informative,
+    BooleanParameter,
+    CategoricalParameter,
+    DecimalParameter,
+    IntParameter,
+    RealParameter,
+    timeframe_to_minutes,
+    timeframe_to_next_date,
+    timeframe_to_prev_date,
+    merge_informative_pair,
+    stoploss_from_absolute,
+    stoploss_from_open,
+    AnnotationType,
+)
+
+import talib.abstract as ta
+from technical import qtpylib
+
+class MarketMakerStrategy(IStrategy):
+    """
+    MARKET MAKER STRATEGY - Piyasa Yapıcı Mantığıyla Ters İşlem
+    """
+    INTERFACE_VERSION = 3
+    timeframe = '5m'
+    can_short: bool = False
+
+    # REVERSAL STRATEJİSİ - Trend dönüşlerini yakala
+    stoploss = -0.030
+    trailing_stop = False
+
+    # SCALPING ROI - Küçük ama sık kar
+    minimal_roi = {
+        "0": 0.008,    # %0.8
+        "2": 0.005,    # 2 candle sonra %0.5
+        "6": 0.002     # 6 candle sonra %0.2
+    }
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        # FİYAT HAREKETİ GÖSTERGELERİ
+        dataframe['pivot_high'] = dataframe['high'].rolling(10).max()
+        dataframe['pivot_low'] = dataframe['low'].rolling(10).min()
+
+        # VOLUME ANALİZİ
+        dataframe['volume_ma'] = dataframe['volume'].rolling(20).mean()
+        dataframe['volume_ratio'] = dataframe['volume'] / dataframe['volume_ma']
+
+        # BASİT MOMENTUM
+        dataframe['rsi'] = ta.RSI(dataframe, timeperiod=14)
+        dataframe['price_change'] = dataframe['close'].pct_change(5)
+
+        # SUPPORT/RESISTANCE
+        dataframe['resistance'] = dataframe['high'].rolling(15).max()
+        dataframe['support'] = dataframe['low'].rolling(15).min()
+        dataframe['mid_point'] = (dataframe['resistance'] + dataframe['support']) / 2
+
+        return dataframe
+
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        TERS (REVERSAL) STRATEJİSİ - Aşırı uçlardan dönüş bekleyen
+        """
+        pair = metadata.get('pair', '')
+
+        # SENARYO 1: DİP ALIM (Oversold Reversal)
+        oversold_conditions = [
+            dataframe['rsi'] < 28,                      # Aşırı oversold
+            dataframe['close'] <= dataframe['support'] * 1.005,  # Support testi
+            dataframe['volume_ratio'] > 1.3,            # Volume spike
+            dataframe['price_change'] < -0.03,          # Son 5 periyot düşüş
+            dataframe['close'] < dataframe['mid_point'] # Alt yarıda
+        ]
+
+        # SENARYO 2: TEpe SATIŞ (Overbought Reversal) - Uzun için değil ama mantık
+        # Burada sadece LONG yapıyoruz, bu yüzden overbought'tan kaçınıyoruz
+
+        # SENARYO 3: BREAKOUT FAILURE - Direnç testi başarısız
+        failure_conditions = [
+            dataframe['close'] >= dataframe['resistance'] * 0.995,  # Direnç testi
+            dataframe['rsi'] > 65,                      # Overbought'a yakın
+            dataframe['volume_ratio'] < 0.8,            # Volume düşük (breakout onayı yok)
+            dataframe['close'] < dataframe['close'].shift(1)  # Dirençten düşüş
+        ]
+
+        scenario1 = reduce(lambda x, y: x & y, oversold_conditions)
+        scenario3 = reduce(lambda x, y: x & y, failure_conditions)
+
+        final_condition = scenario1 | scenario3
+
+        # DEBUG
+        entry_count = final_condition.sum()
+        if entry_count > 0:
+            print(f"🎯 {pair} - {entry_count} reversal sinyali")
+
+        dataframe.loc[final_condition, 'enter_long'] = 1
+        return dataframe
+
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        HEDEF ODAKLI ÇIKIŞ - Küçük karları garantile
+        """
+        conditions = []
+
+        # 1. ORTA SEVİYE HEDEF
+        conditions.append(dataframe['close'] >= dataframe['mid_point'])
+
+        # 2. RSI NORMALLEŞME
+        conditions.append(dataframe['rsi'] > 45)
+
+        # 3. KÜÇÜK KAR HEDEFİ (%2-3)
+        price_increase = (dataframe['close'] / dataframe['close'].shift(3) - 1) > 0.02
+        conditions.append(price_increase)
+
+        # HERHANGİ BİR KOŞUL → ÇIKIŞ
+        exit_condition = reduce(lambda x, y: x | y, conditions)
+
+        dataframe.loc[exit_condition, 'exit_long'] = 1
+        return dataframe
+
+    def custom_stoploss(self, pair: str, trade: Trade, current_time: datetime,
+                       current_rate: float, current_profit: float, **kwargs) -> float:
+        """
+        AGGRESİF STOP-LOSS - Küçük kayıplarla çık
+        """
+        # İlk 2 candle: Sıkı stop
+        trade_duration = (current_time - trade.open_date_utc).total_seconds() / 3600
+
+        if trade_duration < 8:  # 4H'de 2 candle
+            return -0.012  # %1.2
+        elif current_profit > 0.005:  # %0.5 kar
+            return -0.008  # %0.8
+        else:
+            return -0.015  # %1.5
+
+    def leverage(self, pair: str, current_time: datetime, current_rate: float,
+                 proposed_leverage: float, max_leverage: float, entry_tag: Optional[str],
+                 side: str, **kwargs) -> float:
+        return 1.0
+
+    @property
+    def plot_config(self):
+        return {
+            "main_plot": {
+                "pivot_high": {"color": "red"},
+                "pivot_low": {"color": "green"},
+                "mid_point": {"color": "yellow"}
+            },
+            "subplots": {
+                "RSI": {
+                    "rsi": {"color": "purple"}
+                },
+                "Volume": {
+                    "volume_ratio": {"color": "blue", "type": "bar"}
+                }
+            }
+        }
+
+
+
+
+
+
+
+        ===================================================
+        from freqtrade.strategy.interface import IStrategy
+from functools import reduce
+import talib.abstract as ta
+from pandas import DataFrame
+from datetime import datetime
+from freqtrade.persistence import Trade
+from typing import Optional
+
+class MarketMakerStrategy(IStrategy):
+    """
+    OPTIMIZED MARKET MAKER - Başarılı Stratejinin Geliştirilmiş Hali
+    """
+    INTERFACE_VERSION = 3
+    timeframe = '5m'
+    can_short: bool = False
+
+    # ÖNCEKİ BAŞARILI AYARLAR
+    stoploss = -0.030
+    trailing_stop = False
+
+    # ROI - ÖNCEKİ BAŞARILI AYARLAR
+    minimal_roi = {
+        "0": 0.008,    # %0.8
+        "2": 0.005,    # 2 candle sonra %0.5
+        "6": 0.002     # 6 candle sonra %0.2
+    }
+
+    def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        # ÖNCEKİ BAŞARILI GÖSTERGELER
+        dataframe['pivot_high'] = dataframe['high'].rolling(10).max()
+        dataframe['pivot_low'] = dataframe['low'].rolling(10).min()
+        dataframe['volume_ma'] = dataframe['volume'].rolling(20).mean()
+        dataframe['volume_ratio'] = dataframe['volume'] / dataframe['volume_ma']
+        dataframe['rsi'] = ta.RSI(dataframe, timeperiod=14)
+        dataframe['price_change'] = dataframe['close'].pct_change(5)
+        dataframe['resistance'] = dataframe['high'].rolling(15).max()
+        dataframe['support'] = dataframe['low'].rolling(15).min()
+        dataframe['mid_point'] = (dataframe['resistance'] + dataframe['support']) / 2
+
+        # SADECE 1 EK GÖSTERGE: Stochastic for confirmation
+        stoch = ta.STOCH(dataframe)
+        dataframe['stoch_k'] = stoch['slowk']
+        dataframe['stoch_d'] = stoch['slowd']
+
+        return dataframe
+
+    def populate_entry_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        ÖNCEKİ BAŞARILI GİRİŞ + KÜÇÜK İYİLEŞTİRMELER
+        """
+        pair = metadata.get('pair', '')
+
+        # SENARYO 1: DİP ALIM (Önceki Başarılı Koşullar)
+        oversold_conditions = [
+            dataframe['rsi'] < 28,                      # Aşırı oversold
+            dataframe['close'] <= dataframe['support'] * 1.005,  # Support testi
+            dataframe['volume_ratio'] > 1.3,            # Volume spike
+            dataframe['price_change'] < -0.03,          # Son 5 periyot düşüş
+            dataframe['close'] < dataframe['mid_point'], # Alt yarıda
+            # YENİ: Stochastic onayı (çok hafif)
+            dataframe['stoch_k'] < 35                   # Stochastic oversold
+        ]
+
+        # SENARYO 2: BREAKOUT FAILURE (Önceki Başarılı Koşullar)
+        failure_conditions = [
+            dataframe['close'] >= dataframe['resistance'] * 0.995,  # Direnç testi
+            dataframe['rsi'] > 65,                      # Overbought'a yakın
+            dataframe['volume_ratio'] < 0.8,            # Volume düşük
+            dataframe['close'] < dataframe['close'].shift(1),  # Dirençten düşüş
+            # YENİ: Stochastic onayı (çok hafif)
+            dataframe['stoch_k'] > 65                   # Stochastic overbought
+        ]
+
+        scenario1 = reduce(lambda x, y: x & y, oversold_conditions)
+        scenario2 = reduce(lambda x, y: x & y, failure_conditions)
+
+        final_condition = scenario1 | scenario2
+
+        # DEBUG
+        entry_count = final_condition.sum()
+        if entry_count > 0:
+            print(f"🎯 {pair} - {entry_count} reversal sinyali")
+
+        dataframe.loc[final_condition, 'enter_long'] = 1
+        return dataframe
+
+    def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
+        """
+        ÖNCEKİ BAŞARILI ÇIKIŞ + KÜÇÜK İYİLEŞTİRMELER
+        """
+        conditions = []
+
+        # 1. ORTA SEVİYE HEDEF (Önceki gibi)
+        conditions.append(dataframe['close'] >= dataframe['mid_point'])
+
+        # 2. RSI NORMALLEŞME (Önceki gibi)
+        conditions.append(dataframe['rsi'] > 45)
+
+        # 3. KÜÇÜK KAR HEDEFİ (Önceki gibi)
+        price_increase = (dataframe['close'] / dataframe['close'].shift(3) - 1) > 0.02
+        conditions.append(price_increase)
+
+        # YENİ: Stochastic overbought çıkışı (hafif)
+        conditions.append(dataframe['stoch_k'] > 80)
+
+        # HERHANGİ BİR KOŞUL → ÇIKIŞ (Önceki gibi)
+        exit_condition = reduce(lambda x, y: x | y, conditions)
+
+        dataframe.loc[exit_condition, 'exit_long'] = 1
+        return dataframe
+
+    def custom_stoploss(self, pair: str, trade: Trade, current_time: datetime,
+                       current_rate: float, current_profit: float, **kwargs) -> float:
+        """
+        ÖNCEKİ BAŞARILI STOP-LOSS
+        """
+        trade_duration = (current_time - trade.open_date_utc).total_seconds() / 3600
+
+        if trade_duration < 8:
+            return -0.012  # %1.2
+        elif current_profit > 0.005:
+            return -0.008  # %0.8
+        else:
+            return -0.015  # %1.5
+
+    def leverage(self, pair: str, current_time: datetime, current_rate: float,
+                 proposed_leverage: float, max_leverage: float, entry_tag: Optional[str],
+                 side: str, **kwargs) -> float:
+        return 1.0
+
+    @property
+    def plot_config(self):
+        return {
+            "main_plot": {
+                "pivot_high": {"color": "red"},
+                "pivot_low": {"color": "green"},
+                "mid_point": {"color": "yellow"}
+            },
+            "subplots": {
+                "RSI": {
+                    "rsi": {"color": "purple"}
+                },
+                "Volume": {
+                    "volume_ratio": {"color": "blue", "type": "bar"}
+                }
+            }
+        }
+
+
+
+        =====================
+        "BTC/USDT",
+        "DOT/USDT",
+        "SOL/USDT",
+        "AVAX/USDT",
+        "NEAR/USDT",
+        "HBAR/USDT"
