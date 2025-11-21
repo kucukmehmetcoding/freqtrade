@@ -26,20 +26,25 @@ services:
       - FT_APP_ENV=production
       - TZ=${TZ:-UTC}
 
+    ports:
+      - "8081:8081"
+
     volumes:
       # Persistent storage for trading data
       - freqtrade_data:/freqtrade/user_data:rw
+      # Mount config file
+      - ./config_futures.json:/freqtrade/config_futures.json:ro
 
     # Health check configuration
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/api/v1/ping"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8081/api/v1/ping"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
 
-    # Command to run with API server enabled
-    command: ["freqtrade", "trade", "--config", "/freqtrade/config.json", "--api-server", "--listen-ip-address", "0.0.0.0"]
+    # Command to run with config_futures.json
+    command: ["freqtrade", "trade", "--config", "/freqtrade/config_futures.json"]
 
 # Named volumes for data persistence
 volumes:
