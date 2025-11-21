@@ -11,15 +11,12 @@ services:
       - API_USERNAME=${API_USERNAME:-admin}
       - API_PASSWORD=${API_PASSWORD:-freqtrade}
       - JWT_SECRET=${JWT_SECRET:-super-secret}
-    expose:
-      - "8089"
-    command: ["trade", "--config", "/freqtrade/config.json"]
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8089/api/v1/ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+    command: [
+      "freqtrade",
+      "trade",
+      "--config", "/freqtrade/config.json",
+      "--verbosity", "3"
+    ]
 
 volumes:
   freqtrade_data:
