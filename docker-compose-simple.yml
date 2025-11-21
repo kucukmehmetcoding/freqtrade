@@ -12,12 +12,8 @@ services:
       - API_USERNAME=${API_USERNAME:-admin}
       - API_PASSWORD=${API_PASSWORD:-freqtrade}
       - JWT_SECRET=${JWT_SECRET:-super-secret}
-    command: [
-      "trade",
-      "--config", "/freqtrade/config.json",
-      "--strategy", "SampleStrategy",
-      "--verbosity", "3"
-    ]
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["freqtrade trade --config /freqtrade/config.json --strategy SampleStrategy --verbosity 3"]
 
 volumes:
   freqtrade_data:
