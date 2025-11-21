@@ -1,7 +1,12 @@
 FROM freqtradeorg/freqtrade:stable
 
-# Copy config file to the container
-COPY config.json /freqtrade/user_data/config.json
+# Copy config file to the correct location
+COPY config.json /freqtrade/config.json
+
+# Create a simple test script first
+RUN ls -la /freqtrade/ && \
+    echo "Config file check:" && \
+    ls -la /freqtrade/config.json || echo "Config file not found"
 
 # Default command
-CMD ["trade", "--config", "/freqtrade/user_data/config.json", "--strategy", "SampleStrategy"]
+CMD ["sh", "-c", "ls -la /freqtrade/ && freqtrade trade --config /freqtrade/config.json --strategy SampleStrategy"]
