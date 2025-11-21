@@ -4,12 +4,16 @@ services:
     restart: unless-stopped
     volumes:
       - freqtrade_data:/freqtrade/user_data
-      - ./config_futures.json:/freqtrade/config_futures.json:ro
     environment:
       - DRY_RUN=false
+      - BINANCE_API_KEY=${BINANCE_API_KEY}
+      - BINANCE_SECRET=${BINANCE_SECRET}
+      - API_USERNAME=${API_USERNAME:-admin}
+      - API_PASSWORD=${API_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
     expose:
       - "8089"
-    command: ["freqtrade", "trade", "--config", "/freqtrade/config_futures.json"]
+    command: ["freqtrade", "trade", "--config", "/freqtrade/config.json", "--api-server", "--listen-ip-address", "0.0.0.0", "--listen-port", "8089"]
 
 volumes:
   freqtrade_data:
