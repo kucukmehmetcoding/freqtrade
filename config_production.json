@@ -79,11 +79,11 @@
         "listen_ip_address": "0.0.0.0",
         "listen_port": 8080,
         "verbosity": "error",
-        "enable_openapi": false,
-        "jwt_secret_key": "${JWT_SECRET}",
+        "enable_openapi": true,
+        "jwt_secret_key": "${JWT_SECRET:-super-secret-key}",
         "CORS_origins": ["*"],
-        "username": "${API_USERNAME}",
-        "password": "${API_PASSWORD}"
+        "username": "${API_USERNAME:-admin}",
+        "password": "${API_PASSWORD:-freqtrade123}"
     },
 
     "db_url": "sqlite:///user_data/tradesv3.sqlite",

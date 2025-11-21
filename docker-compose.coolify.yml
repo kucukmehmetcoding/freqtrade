@@ -50,6 +50,9 @@ services:
       # Strategy files (if you want to modify strategies without rebuilding)
       - ./user_data/strategies:/freqtrade/user_data/strategies:ro
 
+      # Config file
+      - ./user_data/config.json:/freqtrade/user_data/config.json:ro
+
     networks:
       - freqtrade-network
 
