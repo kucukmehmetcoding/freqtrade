@@ -26,8 +26,8 @@ services:
       - FT_APP_ENV=production
       - TZ=${TZ:-UTC}
 
-    ports:
-      # Web UI port (Coolify will handle SSL termination)
+    expose:
+      # Expose port for Coolify's proxy
       - "8080"
 
     volumes:
