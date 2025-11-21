@@ -4,7 +4,6 @@ services:
   freqtrade-bot:
     # Use official Freqtrade image instead of building
     image: freqtradeorg/freqtrade:stable
-    container_name: freqtrade-production
     restart: unless-stopped
 
     # Environment variables (to be configured in Coolify)
@@ -37,16 +36,6 @@ services:
 
     networks:
       - freqtrade-network
-
-    # Resource limits for production stability
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '0.5'
-        reservations:
-          memory: 256M
-          cpus: '0.1'
 
     # Health check configuration
     healthcheck:
