@@ -26,8 +26,7 @@ services:
       - FT_APP_ENV=production
       - TZ=${TZ:-UTC}
 
-    ports:
-      - "8081:8081"
+    network_mode: "host"
 
     volumes:
       # Persistent storage for trading data
