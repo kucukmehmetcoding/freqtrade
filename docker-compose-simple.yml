@@ -4,7 +4,7 @@ services:
     restart: unless-stopped
     volumes:
       - freqtrade_data:/freqtrade/user_data
-      - ./config.json:/freqtrade/config.json:ro
+      - ./config.json:/freqtrade/user_data/config.json:ro
     ports:
       - "8089:8089"
     environment:
@@ -14,8 +14,8 @@ services:
       - API_USERNAME=${API_USERNAME:-admin}
       - API_PASSWORD=${API_PASSWORD:-freqtrade}
       - JWT_SECRET=${JWT_SECRET:-super-secret}
-    # FIXED: Removed --verbosity parameter for compatibility
-    command: ["trade", "--config", "/freqtrade/config.json", "--strategy", "SampleStrategy"]
+    # FIXED: Mount config to user_data directory to avoid mount issues
+    command: ["trade", "--config", "/freqtrade/user_data/config.json", "--strategy", "SampleStrategy"]
 
 volumes:
   freqtrade_data:
