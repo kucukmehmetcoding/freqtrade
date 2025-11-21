@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  freqtrade-bot:
+    # Use official Freqtrade image instead of building
+    image: freqtradeorg/freqtrade:stable
+    container_name: freqtrade-production
+    restart: unless-stopped
+
+    # Environment variables (to be configured in Coolify)
+    environment:
+      # Trading Configuration
+      - DRY_RUN=${DRY_RUN:-false}
+      - MAX_OPEN_TRADES=${MAX_OPEN_TRADES:-2}
+      - STAKE_AMOUNT=${STAKE_AMOUNT:-100}
+
+      # Binance API Credentials (Encrypt these in Coolify!)
+      - BINANCE_API_KEY=${BINANCE_API_KEY}
+      - BINANCE_SECRET=${BINANCE_SECRET}
+
+      # Web UI Authentication
+      - API_USERNAME=${API_USERNAME:-admin}
+      - API_PASSWORD=${API_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+
+      # Application Environment
+      - FT_APP_ENV=production
+      - TZ=${TZ:-UTC}
+
+    ports:
+      # Web UI port (Coolify will handle SSL termination)
+      - "8080"
+
+    volumes:
+      # Persistent storage for trading data
+      - freqtrade_data:/freqtrade/user_data:rw
+
+    networks:
+      - freqtrade-network
+
+    # Resource limits for production stability
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.1'
+
+    # Health check configuration
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/api/v1/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    # Command to run with default config first, then we'll add strategy later
+    command: ["freqtrade", "trade", "--config", "/freqtrade/config.json"]
+
+# Named volumes for data persistence
+volumes:
+  freqtrade_data:
+    driver: local
+
+# Network configuration
+networks:
+  freqtrade-network:
+    driver: bridge
