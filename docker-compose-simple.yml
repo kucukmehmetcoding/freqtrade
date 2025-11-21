@@ -12,37 +12,12 @@ services:
       - API_USERNAME=${API_USERNAME:-admin}
       - API_PASSWORD=${API_PASSWORD:-freqtrade}
       - JWT_SECRET=${JWT_SECRET:-super-secret}
-    command: >
-      sh -c "
-      echo 'Creating config from environment variables...' &&
-      mkdir -p /freqtrade/user_data &&
-      cat > /freqtrade/user_data/config.json << 'EOF'
-      {
-        \"max_open_trades\": 3,
-        \"stake_currency\": \"USDT\",
-        \"stake_amount\": 100,
-        \"dry_run\": ${DRY_RUN:-true},
-        \"trading_mode\": \"futures\",
-        \"margin_mode\": \"isolated\",
-        \"exchange\": {
-          \"name\": \"binance\",
-          \"key\": \"${BINANCE_API_KEY}\",
-          \"secret\": \"${BINANCE_SECRET}\",
-          \"sandbox\": false
-        },
-        \"pair_whitelist\": [\"BTC/USDT\", \"ETH/USDT\", \"ADA/USDT\"],
-        \"pairlists\": [{\"method\": \"StaticPairList\"}],
-        \"strategy\": \"SampleStrategy\",
-        \"api_server\": {
-          \"enabled\": true,
-          \"listen_ip_address\": \"0.0.0.0\",
-          \"listen_port\": 8089,
-          \"username\": \"${API_USERNAME:-admin}\",
-          \"password\": \"${API_PASSWORD:-freqtrade123}\",
-          \"jwt_secret_key\": \"${JWT_SECRET:-super-secret}\"
-        }
-      }
-      EOF
-      echo 'Config created successfully!' &&
-      freqtrade trade --config /freqtrade/user_data/config.json --strategy SampleStrategy
-      "
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        mkdir -p /freqtrade/user_data
+        echo '{"max_open_trades":3,"stake_currency":"USDT","stake_amount":100,"dry_run":true,"trading_mode":"futures","margin_mode":"isolated","exchange":{"name":"binance","key":"$$BINANCE_API_KEY","secret":"$$BINANCE_SECRET","sandbox":false},"pair_whitelist":["BTC/USDT","ETH/USDT"],"pairlists":[{"method":"StaticPairList"}],"strategy":"SampleStrategy","api_server":{"enabled":true,"listen_ip_address":"0.0.0.0","listen_port":8089,"username":"$$API_USERNAME","password":"$$API_PASSWORD","jwt_secret_key":"$$JWT_SECRET"}}' > /freqtrade/user_data/config.json
+        echo "Config created at:"
+        ls -la /freqtrade/user_data/config.json
+        echo "Starting FreqTrade..."
+        freqtrade trade --config /freqtrade/user_data/config.json --strategy SampleStrategy
