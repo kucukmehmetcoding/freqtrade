@@ -37,7 +37,7 @@ services:
 
     ports:
       # Web UI port (Coolify will handle SSL termination)
-      - "8080:8080"
+      - "${PORT:-8080}:8080"
 
     # volumes:
       # Optional: Mount for persistent data (logs, database, etc.)
