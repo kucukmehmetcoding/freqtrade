@@ -56,7 +56,7 @@ USER ftuser
 # Copy application code (excluding sensitive files)
 COPY --chown=ftuser:ftuser freqtrade/ /freqtrade/freqtrade/
 COPY --chown=ftuser:ftuser user_data/strategies/ /freqtrade/user_data/strategies/
-COPY --chown=ftuser:ftuser setup.py setup.cfg pyproject.toml MANIFEST.in README.md /freqtrade/
+COPY --chown=ftuser:ftuser pyproject.toml MANIFEST.in README.md /freqtrade/
 
 # Install Freqtrade
 RUN pip install -e . --user --no-cache-dir \
