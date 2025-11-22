@@ -39,7 +39,7 @@ services:
       # Web UI port (Coolify will handle SSL termination)
       - "8080:8080"
 
-    volumes:
+    # volumes:
       # Optional: Mount for persistent data (logs, database, etc.)
       # - ./user_data:/freqtrade/user_data:rw
 
@@ -81,7 +81,7 @@ services:
     user: "1000:1000"
 
 # Named volumes for data persistence (optional - using bind mounts instead)
-volumes:
+# volumes:
   # These are kept for compatibility but not used in the current configuration
 
 # Network configuration
