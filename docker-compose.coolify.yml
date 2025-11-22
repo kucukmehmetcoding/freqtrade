@@ -35,9 +35,12 @@ services:
       - FT_APP_ENV=production
       - TZ=${TZ:-UTC}
 
-    ports:
+    # ports:
       # Web UI port (Coolify will handle SSL termination)
-      - "${PORT:-8080}:8080"
+      # - "${PORT:-8080}:8080"
+    
+    expose:
+      - "8080"
 
     # volumes:
       # Optional: Mount for persistent data (logs, database, etc.)
